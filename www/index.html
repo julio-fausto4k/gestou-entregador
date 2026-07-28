@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <link rel="icon" href="favicon.png" />
   <title>Gestou Entregador</title>
   <style>
     :root { --creme:#F6F1E8; --card:#FFFDFA; --ink:#1A1A1A; --dim:#6b6257; --acc:#F4551E; --ok:#16a34a; --line:#e5ddd0; }
@@ -69,7 +70,7 @@
           <h1 id="storeName">—</h1>
           <div class="sub"><span class="dot" id="gpsDot"></span><span id="courierLine">—</span></div>
         </div>
-        <span class="pill" id="verPill">v1.0.0</span>
+        <span class="pill" id="verPill">v1.0.1</span>
       </div>
 
       <div class="card">
@@ -101,8 +102,15 @@
       orders: [],
     };
 
-    const Cap = window.Capacitor;
-    const BG = Cap && Cap.registerPlugin ? Cap.registerPlugin("BackgroundGeolocation") : null;
+    // resolve o plugin NA HORA DO USO (não no load — evita corrida com a injeção do runtime)
+    // e tenta os dois caminhos que o Capacitor expõe no webview.
+    function getBG() {
+      const C = window.Capacitor;
+      if (!C) return null;
+      try { if (C.Plugins && C.Plugins.BackgroundGeolocation) return C.Plugins.BackgroundGeolocation; } catch (_e) { /* segue */ }
+      try { if (C.registerPlugin) return C.registerPlugin("BackgroundGeolocation"); } catch (_e) { /* segue */ }
+      return null;
+    }
 
     // ---------- API ----------
     async function api(path, opts = {}) {
@@ -149,8 +157,22 @@
     }
 
     // ---------- turno (GPS em background) ----------
+    const PERM_HELP = "Pra loja ver você no mapa, o app precisa da sua LOCALIZAÇÃO.\n\n" +
+      "Como liberar:\n1. Toque em OK — vou abrir as configurações do app\n" +
+      "2. Toque em Permissões > Localização\n3. Escolha PERMITIR DURANTE O USO DO APP\n" +
+      "4. Volte aqui e toque em Iniciar turno de novo\n\n" +
+      "Com o turno ativo, o rastreio funciona até com a tela desligada.";
+
     async function startShift() {
-      if (!BG) { alert("GPS em segundo plano indisponível neste dispositivo."); return; }
+      const BG = getBG();
+      if (!BG) {
+        alert("Este aparelho não liberou o serviço de localização pro app.\n\nTenta assim:\n1. Feche o app por completo (tire dos recentes)\n2. Abra de novo e toque em Iniciar turno\n\nSe seguir dando errado, avisa a loja informando marca e modelo do celular.");
+        return;
+      }
+      if (!localStorage.getItem("ge_perm_explained")) {
+        alert("O Android vai pedir a permissão de localização agora.\n\nEscolha PERMITIR DURANTE O USO DO APP — com o turno ativo, o rastreio continua funcionando mesmo com a tela desligada (você verá uma notificação fixa).");
+        localStorage.setItem("ge_perm_explained", "1");
+      }
       try {
         S.watcherId = await BG.addWatcher(
           {
@@ -162,8 +184,9 @@
           },
           (location, error) => {
             if (error) {
-              if (error.code === "NOT_AUTHORIZED" && confirm("O app precisa da sua localização pra loja ver a entrega. Abrir as configurações?")) {
-                BG.openSettings();
+              if (error.code === "NOT_AUTHORIZED") {
+                void stopShift();
+                if (confirm(PERM_HELP)) BG.openSettings();
               }
               return;
             }
@@ -171,7 +194,7 @@
           }
         );
       } catch (e) {
-        alert("Não deu pra ligar o GPS: " + (e.message || e));
+        alert("Não deu pra ligar o GPS: " + (e.message || e) + "\n\nConfere em Configurações > Apps > Gestou Entregador > Permissões se a Localização está permitida.");
         return;
       }
       $("shiftBtn").textContent = "⏹  Encerrar turno";
@@ -181,6 +204,7 @@
     }
 
     async function stopShift() {
+      const BG = getBG();
       if (BG && S.watcherId) { try { await BG.removeWatcher({ id: S.watcherId }); } catch (_e) { /* já parado */ } }
       S.watcherId = null;
       $("shiftBtn").textContent = "▶  Iniciar turno";
