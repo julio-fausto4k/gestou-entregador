@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+﻿apply plugin: 'com.android.application'
 
 android {
     namespace "online.gestou.entregador"
@@ -8,7 +8,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 3
-        versionName "1.0.2"
+        versionName "1.0.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,7 +16,7 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    // assinatura de RELEASE via variáveis de ambiente (CI) — keystore PKCS12 de upload.
+    // assinatura de RELEASE via variÃ¡veis de ambiente (CI) â€” keystore PKCS12 de upload.
     // Sem as envs, o bundleRelease sai sem assinar (build local de teste continua igual).
     def ksPath = System.getenv("ANDROID_KEYSTORE_PATH")
     def ksPass = System.getenv("ANDROID_KEYSTORE_PASSWORD")
