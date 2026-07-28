@@ -1,0 +1,19 @@
+{
+  "name": "gestou-entregador",
+  "version": "1.0.0",
+  "description": "Gestou Entregador — app do motoboy: entregas da loja + rastreio GPS em tempo real.",
+  "private": true,
+  "author": "gestou",
+  "license": "UNLICENSED",
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor-community/background-geolocation": "^1.2.24"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}

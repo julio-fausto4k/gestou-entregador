@@ -1,0 +1,8 @@
+{
+  "appId": "online.gestou.entregador",
+  "appName": "Gestou Entregador",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  }
+}

@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <title>Gestou Entregador</title>
+  <style>
+    :root { --creme:#F6F1E8; --card:#FFFDFA; --ink:#1A1A1A; --dim:#6b6257; --acc:#F4551E; --ok:#16a34a; --line:#e5ddd0; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { margin:0; background:var(--creme); color:var(--ink); font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+           padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+    .wrap { max-width:520px; margin:0 auto; padding:18px 16px 28px; }
+    h1 { font-size:22px; margin:0; letter-spacing:-0.5px; } h1 b{ color:var(--acc); }
+    .sub { color:var(--dim); font-size:12.5px; margin-top:2px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin-top:14px; box-shadow:0 1px 3px rgba(26,26,26,.05); }
+    input { width:100%; background:#fff; border:1.5px solid var(--line); color:var(--ink); border-radius:12px; padding:14px; font-size:22px;
+            text-align:center; letter-spacing:6px; text-transform:uppercase; outline:none; font-weight:800; }
+    input:focus { border-color: var(--acc); }
+    button { border:0; border-radius:12px; padding:14px 16px; font-weight:700; font-size:15px; cursor:pointer; width:100%; }
+    .btn-acc { background:var(--acc); color:#fff; }
+    .btn-ghost { background:#fff; border:1.5px solid var(--line); color:var(--ink); }
+    .btn-ok { background:var(--ok); color:#fff; }
+    button:disabled { opacity:.55; }
+    .hidden { display:none !important; }
+    .err { color:#dc2626; font-size:12.5px; margin-top:8px; min-height:16px; }
+    .row { display:flex; gap:8px; } .row > * { flex:1; }
+    /* header do turno */
+    .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .dot { width:11px; height:11px; border-radius:50%; background:#9ca3af; display:inline-block; margin-right:6px; }
+    .dot.on { background:var(--ok); box-shadow:0 0 0 4px rgba(22,163,74,.15); }
+    .shift-btn { margin-top:12px; padding:18px; font-size:17px; border-radius:14px; }
+    /* entrega */
+    .ord { border:1.5px solid var(--line); border-radius:14px; padding:14px; margin-top:12px; background:#fff; }
+    .ord.dispatched { border-color: var(--acc); }
+    .ord-top { display:flex; justify-content:space-between; align-items:baseline; }
+    .ord-code { font-weight:800; font-size:17px; }
+    .ord-status { font-size:11.5px; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; }
+    .ord-status.route { color:var(--acc); }
+    .ord-addr { margin-top:6px; font-size:14.5px; }
+    .ord-meta { margin-top:4px; color:var(--dim); font-size:12.5px; }
+    .pay { margin-top:8px; padding:9px 11px; border-radius:10px; font-size:13.5px; font-weight:700; }
+    .pay.paid { background:#e8f6ec; color:#166534; }
+    .pay.cobrar { background:#fdeee7; color:#b3400f; }
+    .ord-actions { display:flex; gap:8px; margin-top:10px; }
+    .empty { text-align:center; color:var(--dim); padding:26px 10px; font-size:14px; }
+    .muted { color:var(--dim); font-size:12px; margin-top:8px; text-align:center; }
+    .pill { font-size:11px; font-weight:700; background:#fff; border:1px solid var(--line); border-radius:999px; padding:4px 10px; color:var(--dim); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- PAREAMENTO -->
+    <div id="scrPair">
+      <h1>gestou<b>.</b> entregador</h1>
+      <div class="sub">Suas entregas e navegação, direto da loja.</div>
+      <div class="card">
+        <div style="font-weight:700; margin-bottom:4px">Conectar com a loja</div>
+        <div class="sub" style="margin-bottom:12px">Peça o código de pareamento pra loja (painel gestou → Entregas → Parear celular) e digite aqui:</div>
+        <input id="code" placeholder="CÓDIGO" maxlength="8" autocomplete="one-time-code" />
+        <div class="err" id="pairErr"></div>
+        <button class="btn-acc" id="pairBtn">Conectar</button>
+      </div>
+    </div>
+
+    <!-- PRINCIPAL -->
+    <div id="scrMain" class="hidden">
+      <div class="head">
+        <div>
+          <h1 id="storeName">—</h1>
+          <div class="sub"><span class="dot" id="gpsDot"></span><span id="courierLine">—</span></div>
+        </div>
+        <span class="pill" id="verPill">v1.0.0</span>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700">Turno</div>
+        <div class="sub" id="shiftHint">Inicie o turno pra loja ver você no mapa. O GPS funciona com a tela desligada.</div>
+        <button class="btn-acc shift-btn" id="shiftBtn">▶ &nbsp;Iniciar turno</button>
+      </div>
+
+      <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:baseline">
+        <div style="font-weight:800; font-size:16px">Minhas entregas</div>
+        <span class="pill" id="ordCount">0</span>
+      </div>
+      <div id="orders"><div class="empty">Nenhuma entrega atribuída a você agora.</div></div>
+      <div class="muted" id="syncLine"></div>
+      <div class="muted"><a href="#" id="unpair" style="color:var(--dim)">Desconectar deste celular</a></div>
+    </div>
+  </div>
+
+  <script>
+    const API = "https://pdv360-api.onrender.com";
+    const $ = (id) => document.getElementById(id);
+    const S = {
+      token: localStorage.getItem("ge_token") || "",
+      store: localStorage.getItem("ge_store") || "",
+      courier: localStorage.getItem("ge_courier") || "",
+      watcherId: null,
+      lastPingAt: 0,
+      lastPingOk: false,
+      orders: [],
+    };
+
+    const Cap = window.Capacitor;
+    const BG = Cap && Cap.registerPlugin ? Cap.registerPlugin("BackgroundGeolocation") : null;
+
+    // ---------- API ----------
+    async function api(path, opts = {}) {
+      const res = await fetch(API + path, {
+        method: opts.method || "GET",
+        headers: { "Content-Type": "application/json", "X-Courier-Token": S.token },
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { const e = new Error(data.detail || ("Erro " + res.status)); e.status = res.status; throw e; }
+      return data;
+    }
+
+    // ---------- pareamento ----------
+    async function pair() {
+      const code = $("code").value.trim().toUpperCase();
+      if (!code) return;
+      $("pairBtn").disabled = true; $("pairErr").textContent = "";
+      try {
+        const res = await fetch(API + "/courier-app/claim", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, device_name: navigator.userAgent.includes("Android") ? "Android" : "Celular" }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || "Falha ao conectar.");
+        S.token = data.token; S.store = data.store_name; S.courier = data.courier_name;
+        localStorage.setItem("ge_token", S.token);
+        localStorage.setItem("ge_store", S.store);
+        localStorage.setItem("ge_courier", S.courier);
+        show();
+      } catch (e) {
+        $("pairErr").textContent = e.message;
+      } finally {
+        $("pairBtn").disabled = false;
+      }
+    }
+
+    function unpair() {
+      if (!confirm("Desconectar este celular da loja?")) return;
+      stopShift();
+      localStorage.clear();
+      S.token = ""; S.orders = [];
+      show();
+    }
+
+    // ---------- turno (GPS em background) ----------
+    async function startShift() {
+      if (!BG) { alert("GPS em segundo plano indisponível neste dispositivo."); return; }
+      try {
+        S.watcherId = await BG.addWatcher(
+          {
+            backgroundTitle: "Gestou Entregador",
+            backgroundMessage: "Em turno — a loja está vendo sua posição.",
+            requestPermissions: true,
+            stale: false,
+            distanceFilter: 10,
+          },
+          (location, error) => {
+            if (error) {
+              if (error.code === "NOT_AUTHORIZED" && confirm("O app precisa da sua localização pra loja ver a entrega. Abrir as configurações?")) {
+                BG.openSettings();
+              }
+              return;
+            }
+            if (location) void sendPing(location);
+          }
+        );
+      } catch (e) {
+        alert("Não deu pra ligar o GPS: " + (e.message || e));
+        return;
+      }
+      $("shiftBtn").textContent = "⏹  Encerrar turno";
+      $("shiftBtn").className = "btn-ghost shift-btn";
+      $("shiftHint").textContent = "Turno ativo — pode guardar o celular no bolso, o rastreio continua.";
+      $("gpsDot").classList.add("on");
+    }
+
+    async function stopShift() {
+      if (BG && S.watcherId) { try { await BG.removeWatcher({ id: S.watcherId }); } catch (_e) { /* já parado */ } }
+      S.watcherId = null;
+      $("shiftBtn").textContent = "▶  Iniciar turno";
+      $("shiftBtn").className = "btn-acc shift-btn";
+      $("shiftHint").textContent = "Inicie o turno pra loja ver você no mapa. O GPS funciona com a tela desligada.";
+      $("gpsDot").classList.remove("on");
+    }
+
+    async function sendPing(loc) {
+      const now = Date.now();
+      if (now - S.lastPingAt < 10_000) return; // no máx. 1 ping a cada 10s
+      S.lastPingAt = now;
+      let battery = null;
+      try { if (navigator.getBattery) battery = Math.round((await navigator.getBattery()).level * 100); } catch (_e) { /* sem api */ }
+      try {
+        const r = await api("/courier-app/ping", { method: "POST", body: {
+          lat: loc.latitude, lng: loc.longitude, accuracy: loc.accuracy ?? null, battery,
+        }});
+        S.lastPingOk = true;
+        $("syncLine").textContent = "posição enviada " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        if (r.open_orders !== S.orders.length) void loadOrders();
+      } catch (e) {
+        S.lastPingOk = false;
+        if (e.status === 401) { stopShift(); localStorage.clear(); S.token = ""; show(); }
+      }
+    }
+
+    // ---------- entregas ----------
+    function brl(c) { return (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+    const POD_PT = { cash: "dinheiro", credit: "cartão de crédito", debit: "cartão de débito", pix: "PIX" };
+
+    function mapsUrl(a) {
+      if (a.lat != null && a.lng != null) return `google.navigation:q=${a.lat},${a.lng}`;
+      const q = encodeURIComponent(`${a.street || ""} ${a.number || ""}, ${a.neighborhood || ""}, ${a.city || ""}`);
+      return `https://www.google.com/maps/dir/?api=1&destination=${q}`;
+    }
+
+    function render() {
+      $("ordCount").textContent = S.orders.length;
+      const box = $("orders");
+      if (!S.orders.length) { box.innerHTML = '<div class="empty">Nenhuma entrega atribuída a você agora.</div>'; return; }
+      box.innerHTML = "";
+      for (const o of S.orders) {
+        const a = o.address || {};
+        const emRota = o.status === "DISPATCHED";
+        const div = document.createElement("div");
+        div.className = "ord" + (emRota ? " dispatched" : "");
+        const payHtml = o.payment.status === "PAID"
+          ? '<div class="pay paid">✓ Já pago pelo app — não cobrar</div>'
+          : `<div class="pay cobrar">💰 Cobrar ${brl(o.total_cents)} (${POD_PT[o.payment.pod_method] || "combinar"})${o.payment.change_for_cents ? " · troco p/ " + brl(o.payment.change_for_cents) : ""}</div>`;
+        div.innerHTML = `
+          <div class="ord-top"><span class="ord-code">${o.code}</span><span class="ord-status ${emRota ? "route" : ""}">${emRota ? "em rota" : o.status_label}</span></div>
+          <div class="ord-addr">${a.street || ""}, ${a.number || ""}${a.complement ? " · " + a.complement : ""}<br/><span class="ord-meta">${a.neighborhood || ""}${a.reference ? " · ref: " + a.reference : ""}</span></div>
+          <div class="ord-meta">${o.customer_name || ""}${o.notes ? " · obs: " + o.notes : ""}</div>
+          ${payHtml}
+          <div class="ord-actions">
+            <button class="btn-ghost" data-nav="${o.id}">🗺️ Rota</button>
+            ${o.customer_phone ? `<button class="btn-ghost" data-call="${o.id}">📞 Ligar</button>` : ""}
+          </div>
+          <div class="ord-actions">
+            ${emRota
+              ? `<button class="btn-ok" data-done="${o.id}">✓ Entreguei</button>`
+              : `<button class="btn-acc" data-go="${o.id}">🏍️ Saí pra entrega</button>`}
+          </div>`;
+        box.appendChild(div);
+      }
+      box.querySelectorAll("[data-nav]").forEach((b) => b.onclick = () => {
+        const o = S.orders.find((x) => x.id == b.dataset.nav);
+        window.open(mapsUrl(o.address || {}), "_system");
+      });
+      box.querySelectorAll("[data-call]").forEach((b) => b.onclick = () => {
+        const o = S.orders.find((x) => x.id == b.dataset.call);
+        window.open("tel:" + (o.customer_phone || "").replace(/\D/g, ""), "_system");
+      });
+      box.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => act(b, b.dataset.go, "dispatched"));
+      box.querySelectorAll("[data-done]").forEach((b) => b.onclick = () => act(b, b.dataset.done, "delivered"));
+    }
+
+    async function act(btn, id, action) {
+      btn.disabled = true;
+      try {
+        await api(`/courier-app/orders/${id}/${action}`, { method: "POST" });
+        await loadOrders();
+      } catch (e) {
+        alert(e.message || "Não deu — tenta de novo.");
+        btn.disabled = false;
+      }
+    }
+
+    async function loadOrders() {
+      if (!S.token) return;
+      try {
+        S.orders = await api("/courier-app/orders");
+        render();
+      } catch (e) {
+        if (e.status === 401) { stopShift(); localStorage.clear(); S.token = ""; show(); }
+      }
+    }
+
+    // ---------- telas ----------
+    function show() {
+      const paired = !!S.token;
+      $("scrPair").classList.toggle("hidden", paired);
+      $("scrMain").classList.toggle("hidden", !paired);
+      if (paired) {
+        $("storeName").textContent = S.store || "Loja";
+        $("courierLine").textContent = S.courier || "Entregador";
+        void loadOrders();
+      }
+    }
+
+    $("pairBtn").onclick = pair;
+    $("code").addEventListener("keydown", (e) => e.key === "Enter" && pair());
+    $("unpair").onclick = (e) => { e.preventDefault(); unpair(); };
+    $("shiftBtn").onclick = () => (S.watcherId ? stopShift() : startShift());
+
+    setInterval(() => { if (S.token && !document.hidden) void loadOrders(); }, 15_000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) void loadOrders(); });
+
+    show();
+  </script>
+</body>
+</html>
