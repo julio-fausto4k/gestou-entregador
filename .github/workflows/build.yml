@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_B64 != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -36,14 +38,30 @@ jobs:
       - name: Renomear APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk GestouEntregador.apk
 
+      # AAB assinado pra Google Play — só quando os secrets do keystore existem
+      - name: Restaurar keystore de upload
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: echo "$KEYSTORE_B64" | base64 -d > $RUNNER_TEMP/upload.p12
+
+      - name: Build do AAB assinado (Google Play)
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload.p12
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          cd android && ./gradlew bundleRelease
+          cp app/build/outputs/bundle/release/app-release.aab ../GestouEntregador.aab
+
       - name: Publicar no Releases (tags v*)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: GestouEntregador.apk
+          files: GestouEntregador.*
 
       - name: Guardar artefato (runs manuais)
         uses: actions/upload-artifact@v4
         with:
           name: GestouEntregador
-          path: GestouEntregador.apk
+          path: GestouEntregador.*
