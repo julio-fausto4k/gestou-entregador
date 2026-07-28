@@ -1,7 +1,7 @@
-﻿{
+{
   "name": "gestou-entregador",
-  "version": "1.0.3",
-  "description": "Gestou Entregador â€” app do motoboy: entregas da loja + rastreio GPS em tempo real.",
+  "version": "1.0.4",
+  "description": "Gestou Entregador — app do motoboy: entregas da loja + rastreio GPS em tempo real.",
   "private": true,
   "author": "gestou",
   "license": "UNLICENSED",

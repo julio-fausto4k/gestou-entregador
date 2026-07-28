@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -53,11 +53,11 @@
     <!-- PAREAMENTO -->
     <div id="scrPair">
       <h1>gestou<b>.</b> entregador</h1>
-      <div class="sub">Suas entregas e navegaÃ§Ã£o, direto da loja.</div>
+      <div class="sub">Suas entregas e navegação, direto da loja.</div>
       <div class="card">
         <div style="font-weight:700; margin-bottom:4px">Conectar com a loja</div>
-        <div class="sub" style="margin-bottom:12px">PeÃ§a o cÃ³digo de pareamento pra loja (painel gestou â†’ Entregas â†’ Parear celular) e digite aqui:</div>
-        <input id="code" placeholder="CÃ“DIGO" maxlength="8" autocomplete="one-time-code" />
+        <div class="sub" style="margin-bottom:12px">Peça o código de pareamento pra loja (painel gestou → Entregas → Parear celular) e digite aqui:</div>
+        <input id="code" placeholder="CÓDIGO" maxlength="8" autocomplete="one-time-code" />
         <div class="err" id="pairErr"></div>
         <button class="btn-acc" id="pairBtn">Conectar</button>
       </div>
@@ -67,23 +67,23 @@
     <div id="scrMain" class="hidden">
       <div class="head">
         <div>
-          <h1 id="storeName">â€”</h1>
-          <div class="sub"><span class="dot" id="gpsDot"></span><span id="courierLine">â€”</span></div>
+          <h1 id="storeName">—</h1>
+          <div class="sub"><span class="dot" id="gpsDot"></span><span id="courierLine">—</span></div>
         </div>
-        <span class="pill" id="verPill">v1.0.3</span>
+        <span class="pill" id="verPill">v1.0.4</span>
       </div>
 
       <div class="card">
         <div style="font-weight:700">Turno</div>
-        <div class="sub" id="shiftHint">Inicie o turno pra loja ver vocÃª no mapa. O GPS funciona com a tela desligada.</div>
-        <button class="btn-acc shift-btn" id="shiftBtn">â–¶ &nbsp;Iniciar turno</button>
+        <div class="sub" id="shiftHint">Inicie o turno pra loja ver você no mapa. O GPS funciona com a tela desligada.</div>
+        <button class="btn-acc shift-btn" id="shiftBtn">▶ &nbsp;Iniciar turno</button>
       </div>
 
       <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:baseline">
         <div style="font-weight:800; font-size:16px">Minhas entregas</div>
         <span class="pill" id="ordCount">0</span>
       </div>
-      <div id="orders"><div class="empty">Nenhuma entrega atribuÃ­da a vocÃª agora.</div></div>
+      <div id="orders"><div class="empty">Nenhuma entrega atribuída a você agora.</div></div>
       <div class="muted" id="syncLine"></div>
       <div class="muted"><a href="#" id="unpair" style="color:var(--dim)">Desconectar deste celular</a></div>
     </div>
@@ -102,8 +102,8 @@
       orders: [],
     };
 
-    // resolve o plugin NA HORA DO USO (nÃ£o no load â€” evita corrida com a injeÃ§Ã£o do runtime)
-    // e tenta os dois caminhos que o Capacitor expÃµe no webview.
+    // resolve o plugin NA HORA DO USO (não no load — evita corrida com a injeção do runtime)
+    // e tenta os dois caminhos que o Capacitor expõe no webview.
     function getBG() {
       const C = window.Capacitor;
       if (!C) return null;
@@ -157,27 +157,27 @@
     }
 
     // ---------- turno (GPS em background) ----------
-    const PERM_HELP = "Pra loja ver vocÃª no mapa, o app precisa da sua LOCALIZAÃ‡ÃƒO.\n\n" +
-      "Como liberar:\n1. Toque em OK â€” vou abrir as configuraÃ§Ãµes do app\n" +
-      "2. Toque em PermissÃµes > LocalizaÃ§Ã£o\n3. Escolha PERMITIR DURANTE O USO DO APP\n" +
+    const PERM_HELP = "Pra loja ver você no mapa, o app precisa da sua LOCALIZAÇÃO.\n\n" +
+      "Como liberar:\n1. Toque em OK — vou abrir as configurações do app\n" +
+      "2. Toque em Permissões > Localização\n3. Escolha PERMITIR DURANTE O USO DO APP\n" +
       "4. Volte aqui e toque em Iniciar turno de novo\n\n" +
-      "Com o turno ativo, o rastreio funciona atÃ© com a tela desligada.";
+      "Com o turno ativo, o rastreio funciona até com a tela desligada.";
 
     async function startShift() {
       const BG = getBG();
       if (!BG) {
-        alert("Este aparelho nÃ£o liberou o serviÃ§o de localizaÃ§Ã£o pro app.\n\nTenta assim:\n1. Feche o app por completo (tire dos recentes)\n2. Abra de novo e toque em Iniciar turno\n\nSe seguir dando errado, avisa a loja informando marca e modelo do celular.");
+        alert("Este aparelho não liberou o serviço de localização pro app.\n\nTenta assim:\n1. Feche o app por completo (tire dos recentes)\n2. Abra de novo e toque em Iniciar turno\n\nSe seguir dando errado, avisa a loja informando marca e modelo do celular.");
         return;
       }
       if (!localStorage.getItem("ge_perm_explained")) {
-        alert("O Android vai pedir a permissÃ£o de localizaÃ§Ã£o agora.\n\nEscolha PERMITIR DURANTE O USO DO APP â€” com o turno ativo, o rastreio continua funcionando mesmo com a tela desligada (vocÃª verÃ¡ uma notificaÃ§Ã£o fixa).");
+        alert("O Android vai pedir a permissão de localização agora.\n\nEscolha PERMITIR DURANTE O USO DO APP — com o turno ativo, o rastreio continua funcionando mesmo com a tela desligada (você verá uma notificação fixa).");
         localStorage.setItem("ge_perm_explained", "1");
       }
       try {
         S.watcherId = await BG.addWatcher(
           {
             backgroundTitle: "Gestou Entregador",
-            backgroundMessage: "Em turno â€” a loja estÃ¡ vendo sua posiÃ§Ã£o.",
+            backgroundMessage: "Em turno — a loja está vendo sua posição.",
             requestPermissions: true,
             stale: false,
             distanceFilter: 10,
@@ -194,28 +194,28 @@
           }
         );
       } catch (e) {
-        alert("NÃ£o deu pra ligar o GPS: " + (e.message || e) + "\n\nConfere em ConfiguraÃ§Ãµes > Apps > Gestou Entregador > PermissÃµes se a LocalizaÃ§Ã£o estÃ¡ permitida.");
+        alert("Não deu pra ligar o GPS: " + (e.message || e) + "\n\nConfere em Configurações > Apps > Gestou Entregador > Permissões se a Localização está permitida.");
         return;
       }
-      $("shiftBtn").textContent = "â¹ Â Encerrar turno";
+      $("shiftBtn").textContent = "⏹  Encerrar turno";
       $("shiftBtn").className = "btn-ghost shift-btn";
-      $("shiftHint").textContent = "Turno ativo â€” pode guardar o celular no bolso, o rastreio continua.";
+      $("shiftHint").textContent = "Turno ativo — pode guardar o celular no bolso, o rastreio continua.";
       $("gpsDot").classList.add("on");
     }
 
     async function stopShift() {
       const BG = getBG();
-      if (BG && S.watcherId) { try { await BG.removeWatcher({ id: S.watcherId }); } catch (_e) { /* jÃ¡ parado */ } }
+      if (BG && S.watcherId) { try { await BG.removeWatcher({ id: S.watcherId }); } catch (_e) { /* já parado */ } }
       S.watcherId = null;
-      $("shiftBtn").textContent = "â–¶ Â Iniciar turno";
+      $("shiftBtn").textContent = "▶  Iniciar turno";
       $("shiftBtn").className = "btn-acc shift-btn";
-      $("shiftHint").textContent = "Inicie o turno pra loja ver vocÃª no mapa. O GPS funciona com a tela desligada.";
+      $("shiftHint").textContent = "Inicie o turno pra loja ver você no mapa. O GPS funciona com a tela desligada.";
       $("gpsDot").classList.remove("on");
     }
 
     async function sendPing(loc) {
       const now = Date.now();
-      if (now - S.lastPingAt < 10_000) return; // no mÃ¡x. 1 ping a cada 10s
+      if (now - S.lastPingAt < 10_000) return; // no máx. 1 ping a cada 10s
       S.lastPingAt = now;
       let battery = null;
       try { if (navigator.getBattery) battery = Math.round((await navigator.getBattery()).level * 100); } catch (_e) { /* sem api */ }
@@ -224,7 +224,7 @@
           lat: loc.latitude, lng: loc.longitude, accuracy: loc.accuracy ?? null, battery,
         }});
         S.lastPingOk = true;
-        $("syncLine").textContent = "posiÃ§Ã£o enviada " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        $("syncLine").textContent = "posição enviada " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
         if (r.open_orders !== S.orders.length) void loadOrders();
       } catch (e) {
         S.lastPingOk = false;
@@ -234,11 +234,11 @@
 
     // ---------- entregas ----------
     function brl(c) { return (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
-    const POD_PT = { cash: "dinheiro", credit: "cartÃ£o de crÃ©dito", debit: "cartÃ£o de dÃ©bito", pix: "PIX" };
+    const POD_PT = { cash: "dinheiro", credit: "cartão de crédito", debit: "cartão de débito", pix: "PIX" };
 
     function mapsUrl(a) {
-      // URL universal do Maps com o DESTINO jÃ¡ carregado (coordenadas quando temos,
-      // senÃ£o o endereÃ§o por extenso) â€” o Android abre direto no app do Google Maps.
+      // URL universal do Maps com o DESTINO já carregado (coordenadas quando temos,
+      // senão o endereço por extenso) — o Android abre direto no app do Google Maps.
       const dest = (a.lat != null && a.lng != null)
         ? `${a.lat},${a.lng}`
         : `${a.street || ""} ${a.number || ""}, ${a.neighborhood || ""}, ${a.city || ""}`;
@@ -248,7 +248,7 @@
     function render() {
       $("ordCount").textContent = S.orders.length;
       const box = $("orders");
-      if (!S.orders.length) { box.innerHTML = '<div class="empty">Nenhuma entrega atribuÃ­da a vocÃª agora.</div>'; return; }
+      if (!S.orders.length) { box.innerHTML = '<div class="empty">Nenhuma entrega atribuída a você agora.</div>'; return; }
       box.innerHTML = "";
       for (const o of S.orders) {
         const a = o.address || {};
@@ -256,21 +256,21 @@
         const div = document.createElement("div");
         div.className = "ord" + (emRota ? " dispatched" : "");
         const payHtml = o.payment.status === "PAID"
-          ? '<div class="pay paid">âœ“ JÃ¡ pago pelo app â€” nÃ£o cobrar</div>'
-          : `<div class="pay cobrar">ðŸ’° Cobrar ${brl(o.total_cents)} (${POD_PT[o.payment.pod_method] || "combinar"})${o.payment.change_for_cents ? " Â· troco p/ " + brl(o.payment.change_for_cents) : ""}</div>`;
+          ? '<div class="pay paid">✓ Já pago pelo app — não cobrar</div>'
+          : `<div class="pay cobrar">💰 Cobrar ${brl(o.total_cents)} (${POD_PT[o.payment.pod_method] || "combinar"})${o.payment.change_for_cents ? " · troco p/ " + brl(o.payment.change_for_cents) : ""}</div>`;
         div.innerHTML = `
           <div class="ord-top"><span class="ord-code">${o.code}</span><span class="ord-status ${emRota ? "route" : ""}">${emRota ? "em rota" : o.status_label}</span></div>
-          <div class="ord-addr">${a.street || ""}, ${a.number || ""}${a.complement ? " Â· " + a.complement : ""}<br/><span class="ord-meta">${a.neighborhood || ""}${a.reference ? " Â· ref: " + a.reference : ""}</span></div>
-          <div class="ord-meta">${o.customer_name || ""}${o.notes ? " Â· obs: " + o.notes : ""}</div>
+          <div class="ord-addr">${a.street || ""}, ${a.number || ""}${a.complement ? " · " + a.complement : ""}<br/><span class="ord-meta">${a.neighborhood || ""}${a.reference ? " · ref: " + a.reference : ""}</span></div>
+          <div class="ord-meta">${o.customer_name || ""}${o.notes ? " · obs: " + o.notes : ""}</div>
           ${payHtml}
           <div class="ord-actions">
-            <button class="btn-ghost" data-nav="${o.id}">ðŸ—ºï¸ Rota</button>
-            ${o.customer_phone ? `<button class="btn-ghost" data-call="${o.id}">ðŸ“ž Ligar</button>` : ""}
+            <button class="btn-ghost" data-nav="${o.id}">🗺️ Rota</button>
+            ${o.customer_phone ? `<button class="btn-ghost" data-call="${o.id}">📞 Ligar</button>` : ""}
           </div>
           <div class="ord-actions">
             ${emRota
-              ? `<button class="btn-ok" data-done="${o.id}">âœ“ Entreguei</button>`
-              : `<button class="btn-acc" data-go="${o.id}">ðŸï¸ SaÃ­ pra entrega</button>`}
+              ? `<button class="btn-ok" data-done="${o.id}">✓ Entreguei</button>`
+              : `<button class="btn-acc" data-go="${o.id}">🏍️ Saí pra entrega</button>`}
           </div>`;
         box.appendChild(div);
       }
@@ -286,7 +286,7 @@
       box.querySelectorAll("[data-done]").forEach((b) => b.onclick = () => {
         const o = S.orders.find((x) => x.id == b.dataset.done);
         const cobrar = o.payment.status !== "PAID"
-          ? `\n\nLembrete: esse pedido Ã© Ã€ COBRAR â€” ${brl(o.total_cents)}${o.payment.change_for_cents ? " (troco p/ " + brl(o.payment.change_for_cents) + ")" : ""}.`
+          ? `\n\nLembrete: esse pedido é À COBRAR — ${brl(o.total_cents)}${o.payment.change_for_cents ? " (troco p/ " + brl(o.payment.change_for_cents) + ")" : ""}.`
           : "";
         if (confirm(`Confirmar a ENTREGA do pedido ${o.code}?${cobrar}`)) act(b, b.dataset.done, "delivered");
       });
@@ -298,7 +298,7 @@
         await api(`/courier-app/orders/${id}/${action}`, { method: "POST" });
         await loadOrders();
       } catch (e) {
-        alert(e.message || "NÃ£o deu â€” tenta de novo.");
+        alert(e.message || "Não deu — tenta de novo.");
         btn.disabled = false;
       }
     }
