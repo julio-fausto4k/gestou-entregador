@@ -70,7 +70,7 @@
           <h1 id="storeName">—</h1>
           <div class="sub"><span class="dot" id="gpsDot"></span><span id="courierLine">—</span></div>
         </div>
-        <span class="pill" id="verPill">v1.0.1</span>
+        <span class="pill" id="verPill">v1.0.2</span>
       </div>
 
       <div class="card">
@@ -237,9 +237,12 @@
     const POD_PT = { cash: "dinheiro", credit: "cartão de crédito", debit: "cartão de débito", pix: "PIX" };
 
     function mapsUrl(a) {
-      if (a.lat != null && a.lng != null) return `google.navigation:q=${a.lat},${a.lng}`;
-      const q = encodeURIComponent(`${a.street || ""} ${a.number || ""}, ${a.neighborhood || ""}, ${a.city || ""}`);
-      return `https://www.google.com/maps/dir/?api=1&destination=${q}`;
+      // URL universal do Maps com o DESTINO já carregado (coordenadas quando temos,
+      // senão o endereço por extenso) — o Android abre direto no app do Google Maps.
+      const dest = (a.lat != null && a.lng != null)
+        ? `${a.lat},${a.lng}`
+        : `${a.street || ""} ${a.number || ""}, ${a.neighborhood || ""}, ${a.city || ""}`;
+      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving&dir_action=navigate`;
     }
 
     function render() {
@@ -273,14 +276,20 @@
       }
       box.querySelectorAll("[data-nav]").forEach((b) => b.onclick = () => {
         const o = S.orders.find((x) => x.id == b.dataset.nav);
-        window.open(mapsUrl(o.address || {}), "_system");
+        window.open(mapsUrl(o.address || {}), "_blank");
       });
       box.querySelectorAll("[data-call]").forEach((b) => b.onclick = () => {
         const o = S.orders.find((x) => x.id == b.dataset.call);
-        window.open("tel:" + (o.customer_phone || "").replace(/\D/g, ""), "_system");
+        window.open("tel:" + (o.customer_phone || "").replace(/\D/g, ""), "_blank");
       });
       box.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => act(b, b.dataset.go, "dispatched"));
-      box.querySelectorAll("[data-done]").forEach((b) => b.onclick = () => act(b, b.dataset.done, "delivered"));
+      box.querySelectorAll("[data-done]").forEach((b) => b.onclick = () => {
+        const o = S.orders.find((x) => x.id == b.dataset.done);
+        const cobrar = o.payment.status !== "PAID"
+          ? `\n\nLembrete: esse pedido é À COBRAR — ${brl(o.total_cents)}${o.payment.change_for_cents ? " (troco p/ " + brl(o.payment.change_for_cents) + ")" : ""}.`
+          : "";
+        if (confirm(`Confirmar a ENTREGA do pedido ${o.code}?${cobrar}`)) act(b, b.dataset.done, "delivered");
+      });
     }
 
     async function act(btn, id, action) {
