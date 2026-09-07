@@ -112,6 +112,15 @@
       return null;
     }
 
+    // "ios" | "android" | "web" — o Capacitor responde no app; o UA cobre o navegador.
+    function plat() {
+      try { if (window.Capacitor && Capacitor.getPlatform) return Capacitor.getPlatform(); } catch (_e) { /* segue */ }
+      if (/iPhone|iPad|iPod/.test(navigator.userAgent)) return "ios";
+      if (/Android/.test(navigator.userAgent)) return "android";
+      return "web";
+    }
+    const IOS = plat() === "ios";
+
     // ---------- API ----------
     async function api(path, opts = {}) {
       const res = await fetch(API + path, {
@@ -132,7 +141,7 @@
       try {
         const res = await fetch(API + "/courier-app/claim", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code, device_name: navigator.userAgent.includes("Android") ? "Android" : "Celular" }),
+          body: JSON.stringify({ code, device_name: { ios: "iPhone", android: "Android" }[plat()] || "Celular" }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.detail || "Falha ao conectar.");
@@ -157,20 +166,45 @@
     }
 
     // ---------- turno (GPS em background) ----------
-    const PERM_HELP = "Pra loja ver você no mapa, o app precisa da sua LOCALIZAÇÃO.\n\n" +
-      "Como liberar:\n1. Toque em OK — vou abrir as configurações do app\n" +
-      "2. Toque em Permissões > Localização\n3. Escolha PERMITIR DURANTE O USO DO APP\n" +
-      "4. Volte aqui e toque em Iniciar turno de novo\n\n" +
-      "Com o turno ativo, o rastreio funciona até com a tela desligada.";
+    // O iOS e o Android pedem a permissão de formas diferentes: no Android o
+    // rastreio em background vem junto com "durante o uso" (+ notificação fixa);
+    // no iOS o sistema concede "ao usar o app" primeiro e só depois oferece o
+    // upgrade pra SEMPRE, que é o que mantém a posição com a tela bloqueada.
+    const PERM_HELP = IOS
+      ? "Pra loja ver você no mapa, o app precisa da sua LOCALIZAÇÃO.\n\n" +
+        "Como liberar:\n1. Toque em OK — vou abrir os Ajustes do app\n" +
+        "2. Toque em Localização\n3. Escolha SEMPRE\n" +
+        "4. Deixe a Localização Precisa ligada\n" +
+        "5. Volte aqui e toque em Iniciar turno de novo"
+      : "Pra loja ver você no mapa, o app precisa da sua LOCALIZAÇÃO.\n\n" +
+        "Como liberar:\n1. Toque em OK — vou abrir as configurações do app\n" +
+        "2. Toque em Permissões > Localização\n3. Escolha PERMITIR DURANTE O USO DO APP\n" +
+        "4. Volte aqui e toque em Iniciar turno de novo\n\n" +
+        "Com o turno ativo, o rastreio funciona até com a tela desligada.";
+
+    const PERM_ASK = IOS
+      ? "O iPhone vai pedir a permissão de localização agora.\n\n" +
+        "Toque em PERMITIR AO USAR O APP.\n\n" +
+        "Depois de um tempo em turno, o iPhone pergunta de novo se o app pode usar a " +
+        "localização em segundo plano — escolha ALTERAR PARA SEMPRE. Sem isso, a loja " +
+        "perde sua posição quando você bloqueia a tela."
+      : "O Android vai pedir a permissão de localização agora.\n\n" +
+        "Escolha PERMITIR DURANTE O USO DO APP — com o turno ativo, o rastreio continua " +
+        "funcionando mesmo com a tela desligada (você verá uma notificação fixa).";
+
+    const HINT_IDLE = "Inicie o turno pra loja ver você no mapa. O GPS funciona com a tela desligada.";
+    const HINT_ON = IOS
+      ? "Turno ativo — pode guardar o celular no bolso. A seta azul na barra de cima mostra que a loja está vendo sua posição."
+      : "Turno ativo — pode guardar o celular no bolso, o rastreio continua.";
 
     async function startShift() {
       const BG = getBG();
       if (!BG) {
-        alert("Este aparelho não liberou o serviço de localização pro app.\n\nTenta assim:\n1. Feche o app por completo (tire dos recentes)\n2. Abra de novo e toque em Iniciar turno\n\nSe seguir dando errado, avisa a loja informando marca e modelo do celular.");
+        alert("Este aparelho não liberou o serviço de localização pro app.\n\nTenta assim:\n1. Feche o app por completo (deslize pra cima na lista de apps abertos)\n2. Abra de novo e toque em Iniciar turno\n\nSe seguir dando errado, avisa a loja informando marca e modelo do celular.");
         return;
       }
       if (!localStorage.getItem("ge_perm_explained")) {
-        alert("O Android vai pedir a permissão de localização agora.\n\nEscolha PERMITIR DURANTE O USO DO APP — com o turno ativo, o rastreio continua funcionando mesmo com a tela desligada (você verá uma notificação fixa).");
+        alert(PERM_ASK);
         localStorage.setItem("ge_perm_explained", "1");
       }
       try {
@@ -194,12 +228,14 @@
           }
         );
       } catch (e) {
-        alert("Não deu pra ligar o GPS: " + (e.message || e) + "\n\nConfere em Configurações > Apps > Gestou Entregador > Permissões se a Localização está permitida.");
+        alert("Não deu pra ligar o GPS: " + (e.message || e) + "\n\n" + (IOS
+          ? "Confere em Ajustes > Gestou Entregador > Localização se está como Sempre."
+          : "Confere em Configurações > Apps > Gestou Entregador > Permissões se a Localização está permitida."));
         return;
       }
       $("shiftBtn").textContent = "⏹  Encerrar turno";
       $("shiftBtn").className = "btn-ghost shift-btn";
-      $("shiftHint").textContent = "Turno ativo — pode guardar o celular no bolso, o rastreio continua.";
+      $("shiftHint").textContent = HINT_ON;
       $("gpsDot").classList.add("on");
     }
 
@@ -209,7 +245,7 @@
       S.watcherId = null;
       $("shiftBtn").textContent = "▶  Iniciar turno";
       $("shiftBtn").className = "btn-acc shift-btn";
-      $("shiftHint").textContent = "Inicie o turno pra loja ver você no mapa. O GPS funciona com a tela desligada.";
+      $("shiftHint").textContent = HINT_IDLE;
       $("gpsDot").classList.remove("on");
     }
 

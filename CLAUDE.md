@@ -53,6 +53,20 @@ vêm do manifest do plugin por merge (`ACCESS_FINE/COARSE_LOCATION`,
 `FOREGROUND_SERVICE_LOCATION`, `POST_NOTIFICATIONS`). No iOS ficam no
 `ios/App/App/Info.plist` (as duas chaves `NSLocation*UsageDescription` + `UIBackgroundModes: location`).
 
+Passar `backgroundMessage` no `addWatcher` é o que liga o modo background nas duas
+plataformas — no iOS o plugin então chama `requestAlwaysAuthorization()` e liga
+`allowsBackgroundLocationUpdates`. Mas o comportamento visível difere, e os textos da
+UI são escolhidos por `plat()` / `IOS` em `www/index.html`:
+
+| | Android | iOS |
+| --- | --- | --- |
+| Permissão que basta | "durante o uso do app" | precisa chegar em **Sempre** |
+| Como o usuário chega lá | um diálogo só | iOS dá "ao usar o app" primeiro e oferece o upgrade pra Sempre depois de um tempo |
+| Sinal de que está rastreando | notificação fixa | seta azul na barra de status |
+| Caminho nos ajustes | Configurações > Apps > ... > Permissões | Ajustes > Gestou Entregador > Localização |
+
+Ao mexer nesses textos, lembre que o motoboy lê isso na rua, com pressa.
+
 ## Comandos
 
 ```bash
