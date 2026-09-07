@@ -9,9 +9,10 @@
     "sync": "cap sync android"
   },
   "dependencies": {
+    "@capacitor-community/background-geolocation": "^1.2.24",
     "@capacitor/android": "^7.0.0",
     "@capacitor/core": "^7.0.0",
-    "@capacitor-community/background-geolocation": "^1.2.24"
+    "@capacitor/ios": "^7.6.8"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.0.0"
