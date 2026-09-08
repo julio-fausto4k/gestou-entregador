@@ -104,11 +104,11 @@ O app é **só de iPhone** (`TARGETED_DEVICE_FAMILY = "1"`) e declara
 `ITSAppUsesNonExemptEncryption = false` (só HTTPS, criptografia isenta) pra não
 travar cada envio na pergunta de export compliance.
 
-**A App Review não consegue passar da primeira tela sozinha.** O app abre pedindo um
-código de pareamento que a loja gera e que expira em 15 min. Todo envio precisa de um
-código de demonstração válido (idealmente sem expiração, criado no `pdv360-api`) nas
-App Review Notes, com uma entrega fictícia já atribuída — senão o revisor entra numa
-tela vazia. Sem isso a rejeição por Guideline 2.1 (App Completeness) é quase certa.
+**A App Review não passa da primeira tela sem um código.** O `pdv360-api` já tem um
+código de demonstração fixo pra isso (envs `COURIER_DEMO_CODE` e `COURIER_DEMO_TENANT`,
+ramo de demo no `POST /courier-app/claim`). O passo a passo e o texto pronto das notas
+estão em `docs/app-review-notes.md`. O código não entra no repositório — este repo é
+público.
 
 ### Versão mora em 4 lugares
 
