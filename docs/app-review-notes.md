@@ -37,30 +37,62 @@ de revisão e devolve um token permanente.
    pareia e vê "Nenhuma entrega atribuída a você agora.", que parece app quebrado.
 3. Colar o texto abaixo no campo de notas, trocando o `<CÓDIGO>`.
 
-## Texto para o App Review Notes (Apple) / instruções de acesso (Google)
+## Campos de "Informações para a equipe de revisão"
+
+O app **não tem usuário e senha** — a credencial é o código de pareamento. Mas o
+App Store Connect exige os dois campos quando "Início de sessão obrigatório" está
+marcado, e desmarcar seria mentira: o revisor precisa de credencial pra entrar.
+
+Solução: **deixe marcado** e ponha o código nos dois campos. As notas explicam.
+
+| Campo | Valor |
+| --- | --- |
+| Início de sessão obrigatório | marcado |
+| Nome do usuário | o código de pareamento |
+| Senha | o mesmo código |
+| Informações de contato | pessoa real que responda a Apple, com telefone e e-mail |
+| Anexo | não precisa |
+
+## Texto para o campo Notas
+
+Em inglês: a App Review é internacional e o revisor pode não ler português.
+Troque `<CÓDIGO>` pelo código real.
 
 ```
-This app is used by delivery drivers of stores that use our restaurant
-management platform (gestou). Drivers do not sign up: the store registers the
-driver and generates a pairing code for the driver's phone.
+IMPORTANT: this app does not use a username/password login. Access is granted by
+the store the driver works for, through a PAIRING CODE typed on the first screen.
+The code below is a permanent demo code. We put it in both the username and the
+password fields because App Store Connect requires both.
 
-To access the app, use this demo pairing code:
-
-    PAIRING CODE: <CÓDIGO>
+PAIRING CODE: <CÓDIGO>
 
 Steps:
 1. Open the app.
-2. Type the pairing code above and tap "Conectar".
-3. You are now connected to a demo store with a sample delivery assigned.
-4. Tap "Iniciar turno" to start the shift. The app will ask for location
-   permission — please choose "Allow While Using App", and "Change to Always"
-   if iOS asks again.
+2. Type the code above in the code field and tap "Conectar" (Connect).
+3. You are now connected to a demo store ("Four Burger") with sample deliveries
+   assigned to a demo driver.
+4. Tap "Iniciar turno" (Start shift). iOS will ask for location permission —
+   please choose "Allow While Using App", and "Change to Always" if iOS asks again.
+5. On any delivery you can tap "Rota" (opens Maps with the destination loaded),
+   "Ligar" (call the customer), "Saí pra entrega" (out for delivery) and
+   "Entreguei" (delivered).
 
 Why the app needs background location:
-While a driver is on shift, the store must see the driver's position on a live
-map to know when the order will arrive, and to tell the customer where the
-driver is. The driver keeps the phone in a pocket or on a motorcycle mount, so
-the position must keep updating with the screen locked. Tracking only happens
-between "Iniciar turno" (start shift) and "Encerrar turno" (end shift), which
-the driver controls; it never runs outside a shift.
+While a driver is on shift, the store must see the driver's position on a live map
+to know when the order will arrive and to tell the customer where the driver is.
+The driver keeps the phone in a pocket or on a motorcycle mount, so the position
+must keep updating with the screen locked. Tracking happens only between
+"Iniciar turno" and "Encerrar turno", which the driver controls; nothing is sent
+outside a shift. This is disclosed in our privacy policy:
+https://cardapio.gestou.online/privacidade
+
+The app interface is in Portuguese (Brazil) because it is used by delivery drivers
+in Brazil.
 ```
+
+## Lançamento da versão
+
+Na primeira publicação, escolha **"Lançar esta versão manualmente"**. A aprovação da
+Apple costuma sair em horário comercial da Califórnia — de madrugada aqui. Com
+lançamento automático o app entra no ar sozinho nesse momento, sem ninguém por perto
+pra conferir. No manual, você aperta o botão quando quiser.
