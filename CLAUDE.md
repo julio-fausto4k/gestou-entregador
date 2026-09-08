@@ -97,7 +97,18 @@ O workflow `.github/workflows/build.yml` builda e publica no Releases o
 assinado pra Google Play. A assinatura de release é lida de env vars em
 `android/app/build.gradle`; sem elas o `bundleRelease` sai sem assinar.
 
-iOS não tem CI: Archive e upload são manuais pelo Xcode.
+iOS não tem CI: Archive e upload são manuais pelo Xcode
+(`ios/App/App.xcworkspace` → "Any iOS Device" → Product > Archive).
+
+O app é **só de iPhone** (`TARGETED_DEVICE_FAMILY = "1"`) e declara
+`ITSAppUsesNonExemptEncryption = false` (só HTTPS, criptografia isenta) pra não
+travar cada envio na pergunta de export compliance.
+
+**A App Review não consegue passar da primeira tela sozinha.** O app abre pedindo um
+código de pareamento que a loja gera e que expira em 15 min. Todo envio precisa de um
+código de demonstração válido (idealmente sem expiração, criado no `pdv360-api`) nas
+App Review Notes, com uma entrega fictícia já atribuída — senão o revisor entra numa
+tela vazia. Sem isso a rejeição por Guideline 2.1 (App Completeness) é quase certa.
 
 ### Versão mora em 4 lugares
 
