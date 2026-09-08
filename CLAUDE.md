@@ -97,6 +97,13 @@ O workflow `.github/workflows/build.yml` builda e publica no Releases o
 assinado pra Google Play. A assinatura de release é lida de env vars em
 `android/app/build.gradle`; sem elas o `bundleRelease` sai sem assinar.
 
+### Pendente na próxima versão do iOS
+
+Subir `IPHONEOS_DEPLOYMENT_TARGET` e o `platform :ios` do Podfile de **14.0 para 15.0**
+(depois, `pod install` e build novo). O upload da 1.0.5 passou com um aviso do App Store
+Connect: a partir da primavera de 2027 a Apple recusa binários com `MinimumOSVersion`
+abaixo de 15.0. Custo em usuários: zero — todo iPhone que roda iOS 14 roda iOS 15.
+
 iOS não tem CI: Archive e upload são manuais pelo Xcode
 (`ios/App/App.xcworkspace` → "Any iOS Device" → Product > Archive).
 
