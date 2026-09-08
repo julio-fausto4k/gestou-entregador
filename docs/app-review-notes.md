@@ -26,7 +26,11 @@ de revisão e devolve um token permanente.
 ## Antes de cada envio
 
 1. Conferir no Render que as duas envs estão setadas e que `COURIER_DEMO_TENANT`
-   aponta pra fourburger.
+   aponta pra uma loja de **teste** (fourburger) — **nunca pra um cliente real**.
+   O revisor não só lê: a lista traz nome, endereço e telefone dos clientes, e os
+   botões "Saí pra entrega"/"Entreguei" movem os pedidos de verdade no kanban, com
+   cashback e evento Open Delivery junto. Apontar a demo pra uma loja em operação
+   entrega dado pessoal de terceiros a um revisor externo e mexe no expediente dela.
 2. Garantir que existe **pelo menos um pedido em aberto** na fourburger atribuído ao
    entregador de revisão. O `GET /courier-app/orders` filtra por
    `courier_id` + status `CONFIRMED`, `READY` ou `DISPATCHED` — sem isso o revisor
